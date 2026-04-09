@@ -12,7 +12,9 @@
         }
         body { 
             font-family: -apple-system, sans-serif; background: var(--ios-bg); 
-            margin: 0; color: var(--text-main); display: flex; flex-direction: column; height: 100vh;
+            margin: 0; color: var(--text-main); display: flex; flex-direction: column; 
+            /* 100dvh is a special trick for iPhones so Safari doesn't cover the screen */
+            height: 100dvh; 
         }
         .header { 
             padding: 50px 20px 10px; display: flex; justify-content: space-between; align-items: center; 
@@ -28,7 +30,9 @@
         }
         
         .control-panel { 
-            flex: 1; background: rgba(28,28,30,0.95); padding: 20px; 
+            flex: 1; background: rgba(28,28,30,0.95); 
+            /* Added 60px of padding to the bottom to push buttons up! */
+            padding: 20px 20px 60px 20px; 
             display: flex; flex-direction: column; gap: 20px; border-top: 0.5px solid var(--ios-border);
         }
         .exec-info h2 { font-size: 24px; color: var(--fitness-green); margin: 0 0 5px 0;}
@@ -79,7 +83,6 @@
     </div>
 
     <script>
-        // Notice the capital J's below! It matches your file perfectly now.
         const playlist = [
             { title: "Body Block", desc: "Keep your core tight.", file: "bodyblock.glb", time: "00:45" },
             { title: "Jumping Jacks", desc: "Full body cardio. Keep a steady pace!", file: "JumpingJacks.glb", time: "01:00" }
@@ -102,13 +105,11 @@
             progressTitle.textContent = `HIIT - ${index + 1}/${playlist.length}`;
         }
 
-        // Make the Next button work
         document.getElementById('nextBtn').addEventListener('click', () => {
             currentIndex = (currentIndex + 1) % playlist.length;
             loadWorkout(currentIndex);
         });
 
-        // Make the Previous button work
         document.getElementById('prevBtn').addEventListener('click', () => {
             currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
             loadWorkout(currentIndex);
