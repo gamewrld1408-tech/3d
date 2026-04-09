@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3D Fitness Trainer</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <style>
+        :root { 
+            --ios-bg: #1c1c1e; --ios-border: #38383a; 
+            --fitness-green: #34c759; --text-main: #ffffff; --text-grey: #8e8e93;
+        }
+        body { 
+            font-family: -apple-system, sans-serif; background: var(--ios-bg); 
+            margin: 0; color: var(--text-main); display: flex; flex-direction: column; height: 100vh;
+        }
+        .header { 
+            padding: 50px 20px 10px; display: flex; justify-content: space-between; align-items: center; 
+            border-bottom: 0.5px solid var(--ios-border); background: var(--ios-bg);
+        }
+        .header h1 { margin: 0; font-size: 20px; font-weight: 700; }
+        .exit-btn { color: var(--text-grey); font-size: 20px; background: none; border: none; font-weight: 700;}
+        .workout-container { flex-grow: 1; display: flex; flex-direction: column; background: #000; overflow: hidden; }
+        
+        /* 3D Viewer Area */
+        .character-view { 
+            flex: 1.5; display: flex; align-items: center; justify-content: center; 
+            background: radial-gradient(circle, #2a2a2e 0%, #000 100%);
+        }
+        
+        .control-panel { 
+            flex: 1; background: rgba(28,28,30,0.95); padding: 20px; 
+            display: flex; flex-direction: column; gap: 20px; border-top: 0.5px solid var(--ios-border);
+        }
+        .exec-info h2 { font-size: 24px; color: var(--fitness-green); margin: 0 0 5px 0;}
+        .exec-info p { color: var(--text-grey); font-size: 14px; margin: 0; }
+        .timer-row { display: flex; justify-content: space-between; align-items: baseline;}
+        .timer { font-size: 60px; font-weight: 200; color: var(--text-main); margin-top: -10px;}
+        .player-controls { display: flex; justify-content: space-around; align-items: center; margin-top: auto;}
+        .ctrl-btn { font-size: 28px; color: var(--text-grey); background: none; border: none;}
+        .play-btn { font-size: 50px; color: var(--fitness-green); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <button class="exit-btn">✕</button>
+        <h1 id="progressTitle">CORE - 1/1</h1>
+        <div style="width:20px;"></div>
+    </div>
+
+    <div class="workout-container">
+        <div class="character-view">
+            <model-viewer 
+                src="Body_Block.glb" 
+                camera-controls 
+                autoplay 
+                loop 
+                shadow-intensity="1" 
+                style="width: 100%; height: 100%; background-color: transparent;">
+            </model-viewer>
+        </div>
+
+        <div class="control-panel">
+            <div class="exec-info">
+                <h2 id="execName">Body Block</h2>
+                <p id="execDesc">Keep your core tight and follow the animation.</p>
+            </div>
+            <div class="settings-group">
+                <div class="timer-row"><span style="color:var(--text-grey)">Timer</span></div>
+                <div class="timer" id="timeDisplay">00:45</div>
+            </div>
+            <div class="player-controls">
+                <button class="ctrl-btn">❮</button>
+                <button class="ctrl-btn play-btn">►</button>
+                <button class="ctrl-btn">❯</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
