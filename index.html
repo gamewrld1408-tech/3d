@@ -12,46 +12,57 @@
         }
         body { 
             font-family: -apple-system, sans-serif; background: var(--ios-bg); 
-            margin: 0; color: var(--text-main); display: flex; flex-direction: column; height: 100dvh; 
+            margin: 0; color: var(--text-main); display: flex; flex-direction: column; height: 100dvh; overflow: hidden;
         }
         .header { 
-            padding: 50px 20px 10px; display: flex; justify-content: space-between; align-items: center; 
+            padding: 50px 20px 10px; display: flex; justify-content: center; align-items: center; 
             border-bottom: 0.5px solid var(--ios-border); background: var(--ios-bg);
         }
-        .header h1 { margin: 0; font-size: 20px; font-weight: 700; }
-        .workout-container { flex-grow: 1; display: flex; flex-direction: column; background: #000; overflow: hidden; }
+        .header h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.5px;}
+        .workout-container { flex-grow: 1; display: flex; flex-direction: column; background: #000; position: relative; }
         .character-view { 
             flex: 1.5; display: flex; align-items: center; justify-content: center; 
             background: radial-gradient(circle, #2a2a2e 0%, #000 100%);
         }
         .control-panel { 
             flex: 1; background: rgba(28,28,30,0.95); padding: 20px 20px 60px 20px; 
-            display: flex; flex-direction: column; gap: 20px; border-top: 0.5px solid var(--ios-border);
+            display: flex; flex-direction: column; justify-content: space-between; border-top: 0.5px solid var(--ios-border);
         }
-        .exec-info h2 { font-size: 24px; color: var(--fitness-green); margin: 0;}
-        .timer { font-size: 60px; font-weight: 200; color: var(--text-main); margin: 10px 0;}
-        .player-controls { display: flex; justify-content: space-around; align-items: center; margin-top: auto;}
-        .ctrl-btn { font-size: 28px; color: var(--text-grey); background: none; border: none; cursor: pointer;}
-        .play-btn { font-size: 50px; color: var(--fitness-green); }
+        .exec-info h2 { font-size: 28px; color: var(--fitness-green); margin: 0; font-weight: 800;}
+        .timer { font-size: 70px; font-weight: 200; color: var(--text-main); margin: 5px 0; font-variant-numeric: tabular-nums;}
+        .player-controls { display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px;}
+        .ctrl-btn { font-size: 35px; color: #fff; background: none; border: none; cursor: pointer; padding: 10px;}
+        .play-btn { font-size: 60px; color: var(--fitness-green); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1 id="progressTitle">HIIT - 1/2</h1>
+        <h1 id="progressTitle">HIIT CIRCUIT - 1/2</h1>
     </div>
 
     <div class="workout-container">
         <div class="character-view">
-            <model-viewer id="workout-model" src="bodyblock.glb" camera-controls autoplay loop shadow-intensity="1" style="width: 100%; height: 100%;"></model-viewer>
+            <model-viewer 
+                id="workout-model" 
+                src="bodyblock.glb" 
+                camera-controls 
+                autoplay 
+                loop 
+                ar-modes="webxr"
+                shadow-intensity="1" 
+                style="width: 100%; height: 100%;">
+            </model-viewer>
         </div>
 
         <div class="control-panel">
             <div class="exec-info">
                 <h2 id="execName">Body Block</h2>
-                <p id="execDesc">Keep your core tight!</p>
+                <p id="execDesc" style="color: var(--text-grey); margin: 5px 0;">Get ready to move!</p>
             </div>
+            
             <div class="timer" id="timeDisplay">00:45</div>
+
             <div class="player-controls">
                 <button class="ctrl-btn" id="prevBtn">❮</button>
                 <button class="ctrl-btn play-btn" id="playBtn">►</button>
@@ -81,16 +92,22 @@
             return `0${mins}:${secs < 10 ? '0' : ''}${secs}`;
         }
 
-        function updateUI() {
-            const w = playlist[currentIndex];
-            modelViewer.src = w.file;
+        function loadWorkout(index) {
+            const w = playlist[index];
+            
+            // Force the 3D model to reload the source
+            modelViewer.setAttribute('src', w.file);
+            
             document.getElementById('execName').textContent = w.title;
             document.getElementById('execDesc').textContent = w.desc;
-            document.getElementById('progressTitle').textContent = `HIIT - ${currentIndex + 1}/${playlist.length}`;
-            if(!isPlaying) {
-                timeLeft = w.seconds;
-                timeDisplay.textContent = formatTime(timeLeft);
-            }
+            document.getElementById('progressTitle').textContent = `HIIT CIRCUIT - ${index + 1}/${playlist.length}`;
+            
+            // Reset Timer
+            clearInterval(timerId);
+            isPlaying = false;
+            playBtn.textContent = '►';
+            timeLeft = w.seconds;
+            timeDisplay.textContent = formatTime(timeLeft);
         }
 
         playBtn.addEventListener('click', () => {
@@ -100,9 +117,13 @@
             } else {
                 playBtn.textContent = '⏸';
                 timerId = setInterval(() => {
-                    timeLeft--;
-                    timeDisplay.textContent = formatTime(timeLeft);
-                    if (timeLeft <= 0) clearInterval(timerId);
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        timeDisplay.textContent = formatTime(timeLeft);
+                    } else {
+                        clearInterval(timerId);
+                        playBtn.textContent = '►';
+                    }
                 }, 1000);
             }
             isPlaying = !isPlaying;
@@ -110,19 +131,16 @@
 
         document.getElementById('nextBtn').addEventListener('click', () => {
             currentIndex = (currentIndex + 1) % playlist.length;
-            isPlaying = false;
-            clearInterval(timerId);
-            playBtn.textContent = '►';
-            updateUI();
+            loadWorkout(currentIndex);
         });
 
         document.getElementById('prevBtn').addEventListener('click', () => {
             currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-            isPlaying = false;
-            clearInterval(timerId);
-            playBtn.textContent = '►';
-            updateUI();
+            loadWorkout(currentIndex);
         });
+
+        // Initialize first view
+        window.addEventListener('load', () => loadWorkout(0));
     </script>
 </body>
 </html>
