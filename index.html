@@ -2,145 +2,118 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Fitness Trainer</title>
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalmSpace | Your Grounding Tool</title>
     <style>
-        :root { 
-            --ios-bg: #1c1c1e; --ios-border: #38383a; 
-            --fitness-green: #34c759; --text-main: #ffffff; --text-grey: #8e8e93;
+        :root {
+            --bg-color: #f0f4f8;
+            --primary-blue: #a3c4f3;
+            --text-color: #2d3436;
         }
-        body { 
-            font-family: -apple-system, sans-serif; background: var(--ios-bg); 
-            margin: 0; color: var(--text-main); display: flex; flex-direction: column; height: 100dvh; overflow: hidden;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
         }
-        .header { 
-            padding: 50px 20px 10px; display: flex; justify-content: center; align-items: center; 
-            border-bottom: 0.5px solid var(--ios-border); background: var(--ios-bg);
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            text-align: center;
         }
-        .header h1 { margin: 0; font-size: 18px; font-weight: 700; letter-spacing: -0.5px;}
-        .workout-container { flex-grow: 1; display: flex; flex-direction: column; background: #000; position: relative; }
-        .character-view { 
-            flex: 1.5; display: flex; align-items: center; justify-content: center; 
-            background: radial-gradient(circle, #2a2a2e 0%, #000 100%);
+        /* Breathing Circle Animation */
+        .circle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            margin: 20px 0;
         }
-        .control-panel { 
-            flex: 1; background: rgba(28,28,30,0.95); padding: 20px 20px 60px 20px; 
-            display: flex; flex-direction: column; justify-content: space-between; border-top: 0.5px solid var(--ios-border);
+        .circle {
+            background-color: var(--primary-blue);
+            height: 100px;
+            width: 100px;
+            border-radius: 50%;
+            transition: all 4s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
         }
-        .exec-info h2 { font-size: 28px; color: var(--fitness-green); margin: 0; font-weight: 800;}
-        .timer { font-size: 70px; font-weight: 200; color: var(--text-main); margin: 5px 0; font-variant-numeric: tabular-nums;}
-        .player-controls { display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px;}
-        .ctrl-btn { font-size: 35px; color: #fff; background: none; border: none; cursor: pointer; padding: 10px;}
-        .play-btn { font-size: 60px; color: var(--fitness-green); }
+        .expand { transform: scale(2); }
+        
+        button {
+            background-color: var(--primary-blue);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .safety-box {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #636e72;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1 id="progressTitle">HIIT CIRCUIT - 1/2</h1>
+<div class="container">
+    <h1>CalmSpace</h1>
+    <p>Let's take a moment to breathe.</p>
+
+    <div class="circle-container">
+        <div id="breathCircle" class="circle">Breathe</div>
     </div>
+    
+    <p id="breathText">Press start to begin</p>
+    <button onclick="startBreathing()">Start Exercise</button>
 
-    <div class="workout-container">
-        <div class="character-view">
-            <model-viewer 
-                id="workout-model" 
-                src="bodyblock.glb" 
-                camera-controls 
-                autoplay 
-                loop 
-                ar-modes="webxr"
-                shadow-intensity="1" 
-                style="width: 100%; height: 100%;">
-            </model-viewer>
-        </div>
-
-        <div class="control-panel">
-            <div class="exec-info">
-                <h2 id="execName">Body Block</h2>
-                <p id="execDesc" style="color: var(--text-grey); margin: 5px 0;">Get ready to move!</p>
-            </div>
-            
-            <div class="timer" id="timeDisplay">00:45</div>
-
-            <div class="player-controls">
-                <button class="ctrl-btn" id="prevBtn">❮</button>
-                <button class="ctrl-btn play-btn" id="playBtn">►</button>
-                <button class="ctrl-btn" id="nextBtn">❯</button>
-            </div>
-        </div>
+    <div class="safety-box">
+        <strong>Important:</strong> This is a support tool, not medical advice. <br>
+        If you are in crisis, please call <strong>988</strong> (in the US) or your local emergency services.
     </div>
+</div>
 
-    <script>
-        const playlist = [
-            { title: "Body Block", desc: "Keep your core tight.", file: "bodyblock.glb", seconds: 45 },
-            { title: "Jumping Jacks", desc: "Full body cardio!", file: "jumpingJack.glb", seconds: 60 }
-        ];
+<script>
+    const circle = document.getElementById('breathCircle');
+    const text = document.getElementById('breathText');
+    let running = false;
 
-        let currentIndex = 0;
-        let timeLeft = playlist[0].seconds;
-        let timerId = null;
-        let isPlaying = false;
+    function startBreathing() {
+        if(running) return;
+        running = true;
+        cycle();
+    }
 
-        const modelViewer = document.getElementById('workout-model');
-        const timeDisplay = document.getElementById('timeDisplay');
-        const playBtn = document.getElementById('playBtn');
+    function cycle() {
+        text.innerText = "Breathe In...";
+        circle.classList.add('expand');
+        
+        setTimeout(() => {
+            text.innerText = "Hold...";
+            setTimeout(() => {
+                text.innerText = "Breathe Out...";
+                circle.classList.remove('expand');
+                setTimeout(cycle, 4000);
+            }, 2000);
+        }, 4000);
+    }
+</script>
 
-        function formatTime(s) {
-            const mins = Math.floor(s / 60);
-            const secs = s % 60;
-            return `0${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        }
-
-        function loadWorkout(index) {
-            const w = playlist[index];
-            
-            // Force the 3D model to reload the source
-            modelViewer.setAttribute('src', w.file);
-            
-            document.getElementById('execName').textContent = w.title;
-            document.getElementById('execDesc').textContent = w.desc;
-            document.getElementById('progressTitle').textContent = `HIIT CIRCUIT - ${index + 1}/${playlist.length}`;
-            
-            // Reset Timer
-            clearInterval(timerId);
-            isPlaying = false;
-            playBtn.textContent = '►';
-            timeLeft = w.seconds;
-            timeDisplay.textContent = formatTime(timeLeft);
-        }
-
-        playBtn.addEventListener('click', () => {
-            if (isPlaying) {
-                clearInterval(timerId);
-                playBtn.textContent = '►';
-            } else {
-                playBtn.textContent = '⏸';
-                timerId = setInterval(() => {
-                    if (timeLeft > 0) {
-                        timeLeft--;
-                        timeDisplay.textContent = formatTime(timeLeft);
-                    } else {
-                        clearInterval(timerId);
-                        playBtn.textContent = '►';
-                    }
-                }, 1000);
-            }
-            isPlaying = !isPlaying;
-        });
-
-        document.getElementById('nextBtn').addEventListener('click', () => {
-            currentIndex = (currentIndex + 1) % playlist.length;
-            loadWorkout(currentIndex);
-        });
-
-        document.getElementById('prevBtn').addEventListener('click', () => {
-            currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-            loadWorkout(currentIndex);
-        });
-
-        // Initialize first view
-        window.addEventListener('load', () => loadWorkout(0));
-    </script>
 </body>
 </html>
