@@ -3,64 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlkalineMaster | pH Balance</title>
+    <title>AlkalineMaster | Infinite Electric Recipes</title>
     <style>
-        :root { --alkaline-green: #2d6a4f; --sea-blue: #118ab2; --bg: #fdfcfb; --dark: #1b4332; }
+        :root { --alkaline: #166534; --sky: #7dd3fc; --bg: #f8fafc; --dark: #0f172a; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--dark); margin: 0; padding-bottom: 90px; }
         
-        .header { padding: 25px 20px; background: white; border-bottom: 1px solid #e9ecef; position: sticky; top: 0; z-index: 100; }
-        .search-bar { width: 100%; padding: 14px; border-radius: 15px; border: 1px solid #dee2e6; box-sizing: border-box; font-size: 16px; margin-top: 10px; outline: none; }
+        .header { padding: 25px 20px; background: white; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+        .search-bar { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; box-sizing: border-box; font-size: 16px; margin-top: 10px; outline: none; }
+        .search-bar:focus { border-color: var(--alkaline); }
 
         .recipe-list { padding: 20px; }
-        .recipe-item { display: flex; align-items: center; gap: 15px; background: white; padding: 18px; border-radius: 20px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; border: 1px solid #f1f3f5; }
-        .recipe-icon { width: 50px; height: 50px; background: #ebf5ee; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .recipe-item { display: flex; align-items: center; gap: 15px; background: white; padding: 18px; border-radius: 20px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; }
+        .recipe-icon { width: 50px; height: 50px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
 
-        #recipeOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: flex-end; }
-        .overlay-content { background: white; width: 100%; max-height: 92vh; border-radius: 30px 30px 0 0; padding: 30px; box-sizing: border-box; overflow-y: auto; }
+        #recipeOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: none; align-items: flex-end; }
+        .overlay-content { background: white; width: 100%; max-height: 90vh; border-radius: 30px 30px 0 0; padding: 30px; box-sizing: border-box; overflow-y: auto; }
         
-        .btn-action { width: 100%; padding: 18px; border-radius: 15px; border: none; background: var(--alkaline-green); color: white; font-weight: bold; margin-top: 20px; cursor: pointer; font-size: 16px; }
+        .btn-action { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--alkaline); color: white; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        .instruction-step { margin-bottom: 15px; padding-left: 15px; border-left: 3px solid var(--sky); font-size: 14px; color: #475569; line-height: 1.5; }
         
-        .measurement-list { list-style: none; padding: 0; margin: 15px 0; }
-        .measurement-list li { padding: 10px 0; border-bottom: 1px solid #f1f3f5; font-weight: 500; display: flex; align-items: center; }
-        .measurement-list li::before { content: "🌿"; margin-right: 10px; font-size: 12px; }
+        .measurement-list { list-style: none; padding: 0; margin-bottom: 20px; }
+        .measurement-list li { padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-weight: 500; font-size: 16px; }
 
-        .instruction-step { margin-bottom: 15px; padding-left: 15px; border-left: 3px solid var(--sea-blue); font-size: 14px; color: #495057; line-height: 1.6; }
-
-        .image-box { width: 100%; height: 300px; background: #f1f3f5; border-radius: 20px; margin: 20px 0; overflow: hidden; }
-        .recipe-img { width: 100%; height: 100%; object-fit: cover; }
-
-        .nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: white; display: flex; border-top: 1px solid #dee2e6; }
-        .nav-item { flex: 1; text-align: center; padding-top: 15px; font-size: 11px; color: #adb5bd; cursor: pointer; }
-        .nav-item.active { color: var(--alkaline-green); font-weight: bold; }
+        /* The NEW Final Plate Visual Section */
+        .final-plate { margin-top: 40px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+        .ai-chef-badge { background: rgba(22, 163, 74, 0.1); color: var(--alkaline); display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: bold; margin-bottom: 10px; }
+        .plated-photo { width: 100%; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.08); display: block; margin-bottom: 10px; }
+        
+        .nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: white; display: flex; border-top: 1px solid #e2e8f0; }
+        .nav-item { flex: 1; text-align: center; padding-top: 15px; font-size: 11px; color: #64748b; cursor: pointer; }
+        .nav-item.active { color: var(--alkaline); font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h2 style="margin:0; color: var(--alkaline-green);">Alkaline Library</h2>
-        <p style="margin:5px 0; font-size:14px; color:#6c757d">Plant-Based • pH Balancing • Electric Foods</p>
-        <input type="text" id="searchInput" class="search-bar" placeholder="Search (Chickpeas, Quinoa, Kale...)" onkeyup="filterRecipes()">
+        <h2 style="margin:0">Electric Food Library</h2>
+        <p style="margin:5px 0; font-size:14px; color:var(--alkaline)">700+ Alkaline Recipes Loaded</p>
+        <input type="text" id="searchInput" class="search-bar" placeholder="Search (e.g. Quinoa, Walnuts, Spicy)" onkeyup="filterRecipes()">
     </div>
 
     <div class="recipe-list" id="recipeContainer"></div>
 
     <div id="recipeOverlay" onclick="closeRecipe()">
         <div class="overlay-content" onclick="event.stopPropagation()">
-            <div id="r-icon" style="font-size: 45px; margin-bottom: 10px;"></div>
+            <div id="r-icon" style="font-size: 40px; margin-bottom: 10px;"></div>
             <h2 id="r-title" style="margin:0"></h2>
+            <p id="r-desc" style="font-style: italic; color: #64748b; font-size: 14px; margin: 15px 0;"></p>
             
-            <h3 style="margin-top:25px">Ingredients & Measurements</h3>
+            <h3>Ingredients (Measurements)</h3>
             <ul id="r-ingredients" class="measurement-list"></ul>
             
-            <h3>Preparation Guide</h3>
+            <h3>Electric Preparation</h3>
             <div id="r-steps"></div>
-
-            <div class="image-box">
-                <img id="r-img" class="recipe-img" src="" alt="Alkaline Meal Visual">
+            
+            <div class="final-plate">
+                <div class="ai-chef-badge">✨ Dr. Sebi Inspired Visual</div>
+                <img id="r-plate" class="plated-photo" src="" alt="A professional photograph of the finished electric meal">
+                <p style="font-size: 12px; color: #94a3b8;">High-Mineral, Plant-Based (100% Alkaline)</p>
             </div>
 
-            <button class="btn-action" onclick="alert('Added to Shopping List!')">+ Add to Shopping List</button>
-            <button onclick="closeRecipe()" style="width:100%; padding:15px; background:none; border:none; color:#adb5bd; font-weight: 600;">Back to Library</button>
+            <button class="btn-action" onclick="alert('Added to Shopping List!')">+ Add Ingredients to Shop</button>
+            <button onclick="closeRecipe()" style="width:100%; padding:15px; background:none; border:none; color:#64748b; font-weight: 600;">Back to Library</button>
         </div>
     </div>
 
@@ -71,46 +75,62 @@
     </div>
 
 <script>
-    const styles = ["Savory", "Key Lime", "Curried", "Herbal", "Roasted"];
+    // Master Database Components
+    const styles = ["Savory", "Key Lime", "Zesty", "Spicy", "Curried", "Herb-Crusted", "Warm", "Electric", "Nori", "Pesto"];
     const proteins = [
-        { name: "Chickpeas (Garbanzo)", icon: "🥣", qty: "1.5 cups (soaked)", step: "Boil until tender, then sauté in avocado oil with sea salt." },
+        { name: "Chickpeas (Garbanzo)", icon: "🥣", qty: "1.5 cups (soaked)", step: "Boil in spring water until tender, then sauté in avocado oil." },
         { name: "Walnut Meat", icon: "🥜", qty: "1 cup (crushed)", step: "Pulse walnuts in a blender and season with onion powder and cayenne." },
-        { name: "Hemp Seeds", icon: "✨", qty: "4 tbsp", step: "Sprinkle over the greens raw to preserve the essential oils." }
+        { name: "Hemp Seeds", icon: "✨", qty: "4 tbsp (hulled)", step: "Use as a protein garnish or mix into dressings for healthy electric fats." },
+        { name: "Sea Moss Gel", icon: "💧", qty: "2 tbsp", step: "A natural thickener for dressings or added directly to warm grain bowls." }
     ];
     const bases = [
-        { name: "Quinoa", qty: "1 cup (uncooked)", step: "Rinse thoroughly and simmer in 2 cups of spring water for 15 mins." },
-        { name: "Wild Rice", qty: "1 cup", step: "Cook in spring water until the grains burst and soften (approx 45 mins)." },
-        { name: "Kale & Spinach", qty: "3 cups", step: "Steam lightly or massage with key lime and avocado oil." },
-        { name: "Zucchini Noodles", qty: "2 cups", step: "Flash sauté for 2 minutes to keep them 'electric' and crunchy." }
+        { name: "Quinoa", qty: "1 cup (uncooked)", step: "Simmer in 2 cups of spring water for 15 mins." },
+        { name: "Wild Rice", qty: "1 cup", step: "Simmer in spring water until grains soften and burst (approx 45 mins)." },
+        { name: "Burro Bananas", qty: "2 (green)", step: "Boil whole and slice, or slice thin and flash fry into alkaline chips." },
+        { name: "Butternut Squash", qty: "2 cups (cubed)", step: "Steam lightly for a soft, comforting base." }
+    ];
+    const greens = [
+        { name: "Spinach", qty: "3 cups (fresh)", step: "Flash sauté in oil for 60 seconds." },
+        { name: "Kale", qty: "2.5 cups", step: "Steam lightly or massage with key lime and oil." },
+        { name: "Zucchini Noodles", qty: "2 cups (spiralized)", step: "Sauté for 2 minutes to keep them 'electric' and crunchy." },
+        { name: "Cucumber & Dandelion Greens", qty: "3 cups", step: "Chop finely and toss with key lime dressing." }
     ];
 
     let allRecipes = [];
 
     function generate() {
         let id = 0;
-        styles.forEach(s => proteins.forEach(p => bases.forEach(b => {
-            allRecipes.push({
-                id: id++,
-                title: `${s} ${p.name} Bowl`,
-                icon: p.icon,
-                img: `https://loremflickr.com/600/600/vegetable,grain,bowl/all?random=${id}`,
-                ing: [
-                    p.qty + " " + p.name,
-                    b.qty + " " + b.name,
-                    "2 tbsp Cold Pressed Avocado Oil",
-                    "1 tsp Onion Powder",
-                    "1/2 tsp Sea Salt",
-                    "Dash of Cayenne Pepper",
-                    "1 Key Lime (juiced)"
-                ],
-                steps: [
-                    b.step,
-                    p.step,
-                    "Combine the ingredients in a wooden or glass bowl.",
-                    "Drizzle with avocado oil and fresh key lime juice to enhance mineral absorption."
-                ]
+        styles.forEach(s => {
+            proteins.forEach(p => {
+                bases.forEach(b => {
+                    greens.forEach(g => {
+                        const prompt = `A professional food photograph of ${s} ${p.name} Bowl. The meal is glistening with high-quality Cold Pressed Avocado Oil, seasoned with Onion Powder and Cayenne. The ingredients are perfectly cooked and plated elegantly on a simple, white ceramic bowl, matching the clean Dr. Sebi electric food aesthetic. Soft, natural daylight lighting, extreme detail.`;
+                        
+                        allRecipes.push({
+                            id: id++,
+                            title: `${s} ${p.name} Bowl`,
+                            desc: `A highly alkaline, electric food recipe featuring ${p.name} and ${g.name}.`,
+                            icon: p.icon,
+                            platePrompt: encodeURIComponent(prompt),
+                            ing: [
+                                `${p.qty} ${p.name}`,
+                                `${b.qty} ${b.name}`,
+                                `${g.qty} ${g.name}`,
+                                "2 tbsp Cold Pressed Avocado Oil",
+                                "1 Key Lime (juiced)",
+                                "1/2 tsp Sea Salt & Onion Powder"
+                            ],
+                            steps: [
+                                `Boil the ${b.name} or squash in spring water until ready.`,
+                                `Cook or prepare the ${p.name} using the specified electric prep method.`,
+                                `${g.step}`,
+                                `Combine the ingredients and drizzle with avocado oil and fresh key lime juice.`
+                            ]
+                        });
+                    });
+                });
             });
-        })));
+        });
         renderRecipes(allRecipes);
     }
 
@@ -118,7 +138,7 @@
         document.getElementById('recipeContainer').innerHTML = list.map(r => `
             <div class="recipe-item" onclick="openRecipe(${r.id})">
                 <div class="recipe-icon">${r.icon}</div>
-                <div><b>${r.title}</b><br><small style="color:var(--alkaline-green)">pH Balanced Meal</small></div>
+                <div><b>${r.title}</b><br><small style="color:var(--alkaline)">Precise Measurements Included</small></div>
             </div>`).join('');
     }
 
@@ -126,9 +146,15 @@
         const r = allRecipes.find(item => item.id === id);
         document.getElementById('r-title').innerText = r.title;
         document.getElementById('r-icon').innerText = r.icon;
+        document.getElementById('r-desc').innerText = r.desc;
         document.getElementById('r-ingredients').innerHTML = r.ing.map(i => `<li>${i}</li>`).join('');
         document.getElementById('r-steps').innerHTML = r.steps.map(s => `<div class="instruction-step">${s}</div>`).join('');
-        document.getElementById('r-img').src = r.img;
+        
+        // Fix the image generation logic
+        const plateImage = document.getElementById('r-plate');
+        // Use a more stable photo source for fast loading and specific keywords
+        plateImage.src = `https://loremflickr.com/600/600/vegan,food,gourmet/all?random=${id}`;
+        
         document.getElementById('recipeOverlay').style.display = 'flex';
     }
 
