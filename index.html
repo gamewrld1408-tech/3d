@@ -3,169 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlkalineMaster | Infinite Electric Recipes</title>
+    <title>SugarScan | Smart Food Tracker</title>
     <style>
-        :root { --alkaline: #166534; --sky: #7dd3fc; --bg: #f8fafc; --dark: #0f172a; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--dark); margin: 0; padding-bottom: 90px; }
+        :root { --primary: #16a34a; --warning: #ef4444; --bg: #f8fafc; --card: #ffffff; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; margin: 0; padding-bottom: 90px; }
         
-        .header { padding: 25px 20px; background: white; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
-        .search-bar { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; box-sizing: border-box; font-size: 16px; margin-top: 10px; outline: none; }
-        .search-bar:focus { border-color: var(--alkaline); }
+        /* Camera Interface */
+        .scanner-header { padding: 20px; background: white; text-align: center; border-bottom: 1px solid #e2e8f0; }
+        .camera-box { width: 90%; max-width: 400px; height: 250px; background: #000; margin: 20px auto; border-radius: 20px; border: 4px solid var(--primary); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; color: white;}
+        .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--primary); box-shadow: 0 0 15px var(--primary); animation: scan 2s linear infinite; }
+        @keyframes scan { from { top: 0; } to { top: 100%; } }
 
-        .recipe-list { padding: 20px; }
-        .recipe-item { display: flex; align-items: center; gap: 15px; background: white; padding: 18px; border-radius: 20px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; }
-        .recipe-icon { width: 50px; height: 50px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        /* Scoring Modal */
+        #scoreModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: flex-end; }
+        .modal-content { background: white; width: 100%; max-height: 90vh; border-radius: 30px 30px 0 0; padding: 25px; box-sizing: border-box; overflow-y: auto; }
+        
+        .score-circle { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; border: 5px solid; margin: 10px 0; }
+        .score-1 { border-color: #ef4444; color: #ef4444; } /* High Sugar Alert */
+        .score-10 { border-color: #16a34a; color: #16a34a; } /* Perfect for Diabetes */
 
-        #recipeOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; display: none; align-items: flex-end; }
-        .overlay-content { background: white; width: 100%; max-height: 90vh; border-radius: 30px 30px 0 0; padding: 30px; box-sizing: border-box; overflow-y: auto; }
-        
-        .btn-action { width: 100%; padding: 16px; border-radius: 14px; border: none; background: var(--alkaline); color: white; font-weight: bold; margin-top: 15px; cursor: pointer; }
-        .instruction-step { margin-bottom: 15px; padding-left: 15px; border-left: 3px solid var(--sky); font-size: 14px; color: #475569; line-height: 1.5; }
-        
-        .measurement-list { list-style: none; padding: 0; margin-bottom: 20px; }
-        .measurement-list li { padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-weight: 500; font-size: 16px; }
+        .alert-box { background: #fee2e2; border: 1px solid #ef4444; padding: 10px; border-radius: 12px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #b91c1c; }
 
-        /* The NEW Final Plate Visual Section */
-        .final-plate { margin-top: 40px; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 20px; }
-        .ai-chef-badge { background: rgba(22, 163, 74, 0.1); color: var(--alkaline); display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: bold; margin-bottom: 10px; }
-        .plated-photo { width: 100%; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.08); display: block; margin-bottom: 10px; }
-        
+        .alt-card { display: flex; gap: 15px; background: #f1f5f9; padding: 12px; border-radius: 15px; margin-top: 10px; align-items: center; }
+        .alt-img { width: 50px; height: 50px; background: #ddd; border-radius: 8px; }
+
         .nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: white; display: flex; border-top: 1px solid #e2e8f0; }
         .nav-item { flex: 1; text-align: center; padding-top: 15px; font-size: 11px; color: #64748b; cursor: pointer; }
-        .nav-item.active { color: var(--alkaline); font-weight: bold; }
+        .active-nav { color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h2 style="margin:0">Electric Food Library</h2>
-        <p style="margin:5px 0; font-size:14px; color:var(--alkaline)">700+ Alkaline Recipes Loaded</p>
-        <input type="text" id="searchInput" class="search-bar" placeholder="Search (e.g. Quinoa, Walnuts, Spicy)" onkeyup="filterRecipes()">
+    <div class="scanner-header">
+        <h2 style="margin:0">SugarScan AI</h2>
+        <p style="margin:5px 0; font-size:14px; color:#64748b">Scan a label to check blood sugar impact</p>
     </div>
 
-    <div class="recipe-list" id="recipeContainer"></div>
+    <div class="camera-box" onclick="simulateScan()">
+        <div class="scan-line"></div>
+        <span>Camera Active<br><small>Click to simulate scan</small></span>
+    </div>
 
-    <div id="recipeOverlay" onclick="closeRecipe()">
-        <div class="overlay-content" onclick="event.stopPropagation()">
-            <div id="r-icon" style="font-size: 40px; margin-bottom: 10px;"></div>
-            <h2 id="r-title" style="margin:0"></h2>
-            <p id="r-desc" style="font-style: italic; color: #64748b; font-size: 14px; margin: 15px 0;"></p>
-            
-            <h3>Ingredients (Measurements)</h3>
-            <ul id="r-ingredients" class="measurement-list"></ul>
-            
-            <h3>Electric Preparation</h3>
-            <div id="r-steps"></div>
-            
-            <div class="final-plate">
-                <div class="ai-chef-badge">✨ Dr. Sebi Inspired Visual</div>
-                <img id="r-plate" class="plated-photo" src="" alt="A professional photograph of the finished electric meal">
-                <p style="font-size: 12px; color: #94a3b8;">High-Mineral, Plant-Based (100% Alkaline)</p>
+    <div style="padding: 20px;">
+        <h3>Recent Scans</h3>
+        <div class="alt-card">
+            <div class="alt-img">🥣</div>
+            <div><b>Reese's Puffs</b><br><small style="color:#ef4444">Score: 1/10 (High Spike)</small></div>
+        </div>
+        <div class="alt-card">
+            <div class="alt-img">🍚</div>
+            <div><b>Basmati Rice</b><br><small style="color:#16a34a">Score: 10/10 (Safe)</small></div>
+        </div>
+    </div>
+
+    <div id="scoreModal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div style="display:flex; justify-content:space-between; align-items:center">
+                <h2 id="p-title" style="margin:0">Product Name</h2>
+                <div id="p-score" class="score-circle">1/10</div>
             </div>
 
-            <button class="btn-action" onclick="alert('Added to Shopping List!')">+ Add Ingredients to Shop</button>
-            <button onclick="closeRecipe()" style="width:100%; padding:15px; background:none; border:none; color:#64748b; font-weight: 600;">Back to Library</button>
+            <div class="alert-box" id="p-alert">
+                <span>⚠️</span> <b>Blood sugar alert:</b> This item contains high hidden sugars.
+            </div>
+
+            <div style="margin-top: 25px;">
+                <h3>Nutritional Profile</h3>
+                <p id="p-info" style="font-size: 14px; line-height: 1.6; color:#475569;"></p>
+            </div>
+
+            <h3 style="margin-top: 30px;">Healthy Alternatives</h3>
+            <div id="p-alt-list"></div>
+
+            <button onclick="closeModal()" style="width:100%; padding:15px; border-radius:15px; border:none; background:var(--primary); color:white; font-weight:bold; margin-top:30px;">Scan Next Item</button>
         </div>
     </div>
 
     <div class="nav">
-        <div class="nav-item active">🌿<br>Recipes</div>
-        <div class="nav-item">🛒<br>Shop</div>
-        <div class="nav-item">⚖️<br>pH Level</div>
+        <div class="nav-item">📊<br>Insight</div>
+        <div class="nav-item active-nav">📷<br>Scan</div>
+        <div class="nav-item">⚙️<br>History</div>
     </div>
 
 <script>
-    // Master Database Components
-    const styles = ["Savory", "Key Lime", "Zesty", "Spicy", "Curried", "Herb-Crusted", "Warm", "Electric", "Nori", "Pesto"];
-    const proteins = [
-        { name: "Chickpeas (Garbanzo)", icon: "🥣", qty: "1.5 cups (soaked)", step: "Boil in spring water until tender, then sauté in avocado oil." },
-        { name: "Walnut Meat", icon: "🥜", qty: "1 cup (crushed)", step: "Pulse walnuts in a blender and season with onion powder and cayenne." },
-        { name: "Hemp Seeds", icon: "✨", qty: "4 tbsp (hulled)", step: "Use as a protein garnish or mix into dressings for healthy electric fats." },
-        { name: "Sea Moss Gel", icon: "💧", qty: "2 tbsp", step: "A natural thickener for dressings or added directly to warm grain bowls." }
-    ];
-    const bases = [
-        { name: "Quinoa", qty: "1 cup (uncooked)", step: "Simmer in 2 cups of spring water for 15 mins." },
-        { name: "Wild Rice", qty: "1 cup", step: "Simmer in spring water until grains soften and burst (approx 45 mins)." },
-        { name: "Burro Bananas", qty: "2 (green)", step: "Boil whole and slice, or slice thin and flash fry into alkaline chips." },
-        { name: "Butternut Squash", qty: "2 cups (cubed)", step: "Steam lightly for a soft, comforting base." }
-    ];
-    const greens = [
-        { name: "Spinach", qty: "3 cups (fresh)", step: "Flash sauté in oil for 60 seconds." },
-        { name: "Kale", qty: "2.5 cups", step: "Steam lightly or massage with key lime and oil." },
-        { name: "Zucchini Noodles", qty: "2 cups (spiralized)", step: "Sauté for 2 minutes to keep them 'electric' and crunchy." },
-        { name: "Cucumber & Dandelion Greens", qty: "3 cups", step: "Chop finely and toss with key lime dressing." }
-    ];
+    const products = {
+        bad: {
+            name: "Reese's Puffs",
+            score: "1/10",
+            alert: "High glycemic index. This will cause a rapid blood sugar spike.",
+            info: "High in sodium, High in sugar (9g), Ultra-processed grains.",
+            alts: [
+                { name: "McCann's Steel Cut Oatmeal", score: "9/10", icon: "🥣" },
+                { name: "Plain Greek Yogurt", score: "10/10", icon: "🍶" }
+            ]
+        }
+    };
 
-    let allRecipes = [];
-
-    function generate() {
-        let id = 0;
-        styles.forEach(s => {
-            proteins.forEach(p => {
-                bases.forEach(b => {
-                    greens.forEach(g => {
-                        const prompt = `A professional food photograph of ${s} ${p.name} Bowl. The meal is glistening with high-quality Cold Pressed Avocado Oil, seasoned with Onion Powder and Cayenne. The ingredients are perfectly cooked and plated elegantly on a simple, white ceramic bowl, matching the clean Dr. Sebi electric food aesthetic. Soft, natural daylight lighting, extreme detail.`;
-                        
-                        allRecipes.push({
-                            id: id++,
-                            title: `${s} ${p.name} Bowl`,
-                            desc: `A highly alkaline, electric food recipe featuring ${p.name} and ${g.name}.`,
-                            icon: p.icon,
-                            platePrompt: encodeURIComponent(prompt),
-                            ing: [
-                                `${p.qty} ${p.name}`,
-                                `${b.qty} ${b.name}`,
-                                `${g.qty} ${g.name}`,
-                                "2 tbsp Cold Pressed Avocado Oil",
-                                "1 Key Lime (juiced)",
-                                "1/2 tsp Sea Salt & Onion Powder"
-                            ],
-                            steps: [
-                                `Boil the ${b.name} or squash in spring water until ready.`,
-                                `Cook or prepare the ${p.name} using the specified electric prep method.`,
-                                `${g.step}`,
-                                `Combine the ingredients and drizzle with avocado oil and fresh key lime juice.`
-                            ]
-                        });
-                    });
-                });
-            });
-        });
-        renderRecipes(allRecipes);
-    }
-
-    function renderRecipes(list) {
-        document.getElementById('recipeContainer').innerHTML = list.map(r => `
-            <div class="recipe-item" onclick="openRecipe(${r.id})">
-                <div class="recipe-icon">${r.icon}</div>
-                <div><b>${r.title}</b><br><small style="color:var(--alkaline)">Precise Measurements Included</small></div>
-            </div>`).join('');
-    }
-
-    function openRecipe(id) {
-        const r = allRecipes.find(item => item.id === id);
-        document.getElementById('r-title').innerText = r.title;
-        document.getElementById('r-icon').innerText = r.icon;
-        document.getElementById('r-desc').innerText = r.desc;
-        document.getElementById('r-ingredients').innerHTML = r.ing.map(i => `<li>${i}</li>`).join('');
-        document.getElementById('r-steps').innerHTML = r.steps.map(s => `<div class="instruction-step">${s}</div>`).join('');
+    function simulateScan() {
+        const p = products.bad;
+        document.getElementById('p-title').innerText = p.name;
+        document.getElementById('p-score').innerText = p.score;
+        document.getElementById('p-alert').innerHTML = `<span>⚠️</span> <b>Blood sugar alert:</b> ${p.alert}`;
+        document.getElementById('p-info').innerText = p.info;
         
-        // Fix the image generation logic
-        const plateImage = document.getElementById('r-plate');
-        // Use a more stable photo source for fast loading and specific keywords
-        plateImage.src = `https://loremflickr.com/600/600/vegan,food,gourmet/all?random=${id}`;
-        
-        document.getElementById('recipeOverlay').style.display = 'flex';
+        document.getElementById('p-alt-list').innerHTML = p.alts.map(a => `
+            <div class="alt-card">
+                <div class="alt-img" style="display:flex; align-items:center; justify-content:center; font-size:24px;">${a.icon}</div>
+                <div><b>${a.name}</b><br><small style="color:var(--primary)">SugarScan Choice: ${a.score}</small></div>
+            </div>
+        `).join('');
+
+        document.getElementById('scoreModal').style.display = 'flex';
     }
 
-    function closeRecipe() { document.getElementById('recipeOverlay').style.display = 'none'; }
-    
-    function filterRecipes() {
-        const term = document.getElementById('searchInput').value.toLowerCase();
-        renderRecipes(allRecipes.filter(r => r.title.toLowerCase().includes(term)));
+    function closeModal() {
+        document.getElementById('scoreModal').style.display = 'none';
     }
-
-    generate();
 </script>
 </body>
 </html>
