@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HIIT Timer | Audio Pulse</title>
+    <title>HIIT Timer | Pulse & Reset</title>
     <style>
-        :root { --work: #ef4444; --rest: #3b82f6; --bg: #0f172a; }
+        :root { --work: #ef4444; --rest: #3b82f6; --bg: #0f172a; --success: #22c55e; }
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg);
@@ -20,7 +20,7 @@
         }
         .timer-card {
             background: rgba(255, 255, 255, 0.05);
-            padding: 50px;
+            padding: 40px;
             border-radius: 40px;
             text-align: center;
             backdrop-filter: blur(10px);
@@ -28,39 +28,46 @@
             width: 85%;
             max-width: 400px;
         }
-        #time-display { font-size: 9rem; font-weight: 900; margin: 10px 0; font-variant-numeric: tabular-nums; transition: 0.3s; }
-        #status { font-size: 1.5rem; font-weight: 800; letter-spacing: 4px; margin-bottom: 5px; }
-        .work-text { color: var(--work); text-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
-        .rest-text { color: var(--rest); text-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+        #time-display { font-size: 8rem; font-weight: 900; margin: 10px 0; font-variant-numeric: tabular-nums; }
+        #status { font-size: 1.5rem; font-weight: 800; letter-spacing: 4px; }
+        .work-text { color: var(--work); text-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+        .rest-text { color: var(--rest); text-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
         
+        .controls { display: flex; gap: 10px; margin-top: 20px; }
         .btn {
-            padding: 20px 40px;
-            font-size: 1.2rem;
+            flex: 1;
+            padding: 18px;
+            font-size: 1rem;
             font-weight: bold;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            width: 100%;
-            margin-top: 20px;
+            transition: 0.2s;
         }
-        .start-btn { background: #22c55e; color: white; }
-        .music-indicator { font-size: 12px; margin-top: 15px; opacity: 0.6; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .bar { width: 3px; height: 10px; background: white; animation: bounce 0.5s infinite ease-in-out; }
+        .start-btn { background: var(--success); color: white; }
+        .reset-btn { background: #64748b; color: white; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .music-indicator { font-size: 11px; margin-top: 20px; opacity: 0.6; display: flex; align-items: center; justify-content: center; gap: 5px; height: 20px; }
+        .bar { width: 3px; height: 10px; background: white; animation: bounce 0.5s infinite ease-in-out; display: none; }
         @keyframes bounce { 0%, 100% { height: 5px; } 50% { height: 15px; } }
     </style>
 </head>
 <body>
 
     <div class="timer-card">
-        <div id="round-info" style="opacity: 0.5; font-weight: 600;">ROUND 1 / 50</div>
+        <div id="round-info" style="opacity: 0.5; font-size: 0.9rem;">ROUND 1 / 50</div>
         <div id="status">READY</div>
-        <div id="time-display">45</div>
+        <div id="time-display" class="work-text">45</div>
         
-        <button id="mainBtn" class="btn start-btn" onclick="startWorkout()">START WORKOUT</button>
+        <div class="controls">
+            <button id="startBtn" class="btn start-btn" onclick="startWorkout()">START</button>
+            <button id="resetBtn" class="btn reset-btn" onclick="resetWorkout()">RESET</button>
+        </div>
         
-        <div class="music-indicator" id="musicStatus" style="visibility: hidden;">
+        <div class="music-indicator" id="musicStatus">
             <div class="bar"></div><div class="bar" style="animation-delay: 0.1s"></div><div class="bar" style="animation-delay: 0.2s"></div>
-            ELECTRONIC BEATS ACTIVE
+            <span id="music-text">MUSIC READY</span>
         </div>
     </div>
 
@@ -78,38 +85,56 @@
         let isWork = true;
         let timer = null;
         const music = document.getElementById('workoutMusic');
+        const startBtn = document.getElementById('startBtn');
+        const bars = document.querySelectorAll('.bar');
 
         function startWorkout() {
-            if (timer) return; // Prevent double start
-            document.getElementById('mainBtn').style.display = 'none';
-            document.getElementById('musicStatus').style.visibility = 'visible';
+            if (timer) return; 
+            startBtn.disabled = true;
             music.play();
             timer = setInterval(runTimer, 1000);
             updateDisplay();
+        }
+
+        function resetWorkout() {
+            clearInterval(timer);
+            timer = null;
+            currentRound = 1;
+            timeLeft = workTime;
+            isWork = true;
+            startBtn.disabled = false;
+            
+            music.pause();
+            music.currentTime = 0;
+            
+            updateDisplay();
+            document.getElementById('status').innerText = "READY";
+            document.getElementById('music-text').innerText = "MUSIC READY";
+            bars.forEach(b => b.style.display = 'none');
         }
 
         function runTimer() {
             if (timeLeft > 0) {
                 timeLeft--;
             } else {
-                // Switch modes
                 if (isWork) {
                     isWork = false;
                     timeLeft = restTime;
-                    music.pause(); // Stop music during break
-                    document.getElementById('musicStatus').style.opacity = '0.2';
+                    music.pause();
+                    document.getElementById('music-text').innerText = "PAUSED (REST)";
+                    bars.forEach(b => b.style.display = 'none');
                 } else {
                     isWork = true;
                     timeLeft = workTime;
                     currentRound++;
-                    music.play(); // Start music for work
-                    document.getElementById('musicStatus').style.opacity = '1';
+                    music.play();
+                    document.getElementById('music-text').innerText = "BEATS ACTIVE";
+                    bars.forEach(b => b.style.display = 'block');
                 }
 
                 if (currentRound > totalRounds) {
-                    clearInterval(timer);
-                    alert("Workout Finished!");
-                    location.reload();
+                    resetWorkout();
+                    alert("Workout Finished! Great job.");
                 }
             }
             updateDisplay();
@@ -124,6 +149,10 @@
             if (isWork) {
                 status.innerText = "WORK";
                 display.className = "work-text";
+                if(timer) {
+                    bars.forEach(b => b.style.display = 'block');
+                    document.getElementById('music-text').innerText = "BEATS ACTIVE";
+                }
             } else {
                 status.innerText = "REST";
                 display.className = "rest-text";
