@@ -3,122 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SugarScan | Smart Food Tracker</title>
+    <title>HIIT Timer | 50 Rounds</title>
     <style>
-        :root { --primary: #16a34a; --warning: #ef4444; --bg: #f8fafc; --card: #ffffff; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #1e293b; margin: 0; padding-bottom: 90px; }
+        :root {
+            --work-color: #ef4444; /* Red */
+            --rest-color: #3b82f6; /* Blue */
+            --bg: #0f172a;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .timer-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        #status {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+        #time-display {
+            font-size: 8rem;
+            font-weight: 900;
+            line-height: 1;
+            margin: 20px 0;
+            font-variant-numeric: tabular-nums;
+        }
+        #round-display {
+            font-size: 1.2rem;
+            opacity: 0.7;
+        }
+        .controls {
+            margin-top: 40px;
+            display: flex;
+            gap: 15px;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.95); }
+        .start-btn { background-color: #22c55e; color: white; }
+        .reset-btn { background-color: #64748b; color: white; }
         
-        /* Camera Interface */
-        .scanner-header { padding: 20px; background: white; text-align: center; border-bottom: 1px solid #e2e8f0; }
-        .camera-box { width: 90%; max-width: 400px; height: 250px; background: #000; margin: 20px auto; border-radius: 20px; border: 4px solid var(--primary); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; color: white;}
-        .scan-line { position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--primary); box-shadow: 0 0 15px var(--primary); animation: scan 2s linear infinite; }
-        @keyframes scan { from { top: 0; } to { top: 100%; } }
-
-        /* Scoring Modal */
-        #scoreModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: none; align-items: flex-end; }
-        .modal-content { background: white; width: 100%; max-height: 90vh; border-radius: 30px 30px 0 0; padding: 25px; box-sizing: border-box; overflow-y: auto; }
-        
-        .score-circle { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; border: 5px solid; margin: 10px 0; }
-        .score-1 { border-color: #ef4444; color: #ef4444; } /* High Sugar Alert */
-        .score-10 { border-color: #16a34a; color: #16a34a; } /* Perfect for Diabetes */
-
-        .alert-box { background: #fee2e2; border: 1px solid #ef4444; padding: 10px; border-radius: 12px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: #b91c1c; }
-
-        .alt-card { display: flex; gap: 15px; background: #f1f5f9; padding: 12px; border-radius: 15px; margin-top: 10px; align-items: center; }
-        .alt-img { width: 50px; height: 50px; background: #ddd; border-radius: 8px; }
-
-        .nav { position: fixed; bottom: 0; width: 100%; height: 75px; background: white; display: flex; border-top: 1px solid #e2e8f0; }
-        .nav-item { flex: 1; text-align: center; padding-top: 15px; font-size: 11px; color: #64748b; cursor: pointer; }
-        .active-nav { color: var(--primary); font-weight: bold; }
+        /* Dynamic Classes */
+        .work-mode { color: var(--work-color); }
+        .rest-mode { color: var(--rest-color); }
     </style>
 </head>
 <body>
 
-    <div class="scanner-header">
-        <h2 style="margin:0">SugarScan AI</h2>
-        <p style="margin:5px 0; font-size:14px; color:#64748b">Scan a label to check blood sugar impact</p>
-    </div>
-
-    <div class="camera-box" onclick="simulateScan()">
-        <div class="scan-line"></div>
-        <span>Camera Active<br><small>Click to simulate scan</small></span>
-    </div>
-
-    <div style="padding: 20px;">
-        <h3>Recent Scans</h3>
-        <div class="alt-card">
-            <div class="alt-img">🥣</div>
-            <div><b>Reese's Puffs</b><br><small style="color:#ef4444">Score: 1/10 (High Spike)</small></div>
-        </div>
-        <div class="alt-card">
-            <div class="alt-img">🍚</div>
-            <div><b>Basmati Rice</b><br><small style="color:#16a34a">Score: 10/10 (Safe)</small></div>
-        </div>
-    </div>
-
-    <div id="scoreModal" onclick="closeModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <div style="display:flex; justify-content:space-between; align-items:center">
-                <h2 id="p-title" style="margin:0">Product Name</h2>
-                <div id="p-score" class="score-circle">1/10</div>
-            </div>
-
-            <div class="alert-box" id="p-alert">
-                <span>⚠️</span> <b>Blood sugar alert:</b> This item contains high hidden sugars.
-            </div>
-
-            <div style="margin-top: 25px;">
-                <h3>Nutritional Profile</h3>
-                <p id="p-info" style="font-size: 14px; line-height: 1.6; color:#475569;"></p>
-            </div>
-
-            <h3 style="margin-top: 30px;">Healthy Alternatives</h3>
-            <div id="p-alt-list"></div>
-
-            <button onclick="closeModal()" style="width:100%; padding:15px; border-radius:15px; border:none; background:var(--primary); color:white; font-weight:bold; margin-top:30px;">Scan Next Item</button>
-        </div>
-    </div>
-
-    <div class="nav">
-        <div class="nav-item">📊<br>Insight</div>
-        <div class="nav-item active-nav">📷<br>Scan</div>
-        <div class="nav-item">⚙️<br>History</div>
-    </div>
-
-<script>
-    const products = {
-        bad: {
-            name: "Reese's Puffs",
-            score: "1/10",
-            alert: "High glycemic index. This will cause a rapid blood sugar spike.",
-            info: "High in sodium, High in sugar (9g), Ultra-processed grains.",
-            alts: [
-                { name: "McCann's Steel Cut Oatmeal", score: "9/10", icon: "🥣" },
-                { name: "Plain Greek Yogurt", score: "10/10", icon: "🍶" }
-            ]
-        }
-    };
-
-    function simulateScan() {
-        const p = products.bad;
-        document.getElementById('p-title').innerText = p.name;
-        document.getElementById('p-score').innerText = p.score;
-        document.getElementById('p-alert').innerHTML = `<span>⚠️</span> <b>Blood sugar alert:</b> ${p.alert}`;
-        document.getElementById('p-info').innerText = p.info;
+    <div class="timer-card">
+        <div id="round-display">ROUND 1 / 50</div>
+        <div id="status">READY?</div>
+        <div id="time-display">00</div>
         
-        document.getElementById('p-alt-list').innerHTML = p.alts.map(a => `
-            <div class="alt-card">
-                <div class="alt-img" style="display:flex; align-items:center; justify-content:center; font-size:24px;">${a.icon}</div>
-                <div><b>${a.name}</b><br><small style="color:var(--primary)">SugarScan Choice: ${a.score}</small></div>
-            </div>
-        `).join('');
+        <div class="controls">
+            <button id="mainBtn" class="start-btn" onclick="toggleTimer()">START WORKOUT</button>
+            <button class="reset-btn" onclick="resetTimer()">RESET</button>
+        </div>
+    </div>
 
-        document.getElementById('scoreModal').style.display = 'flex';
-    }
+    <script>
+        let rounds = 50;
+        let workTime = 45;
+        let restTime = 15;
+        
+        let currentRound = 1;
+        let timeLeft = workTime;
+        let isWork = true;
+        let timer = null;
+        let isActive = false;
 
-    function closeModal() {
-        document.getElementById('scoreModal').style.display = 'none';
-    }
-</script>
+        const timeDisplay = document.getElementById('time-display');
+        const statusDisplay = document.getElementById('status');
+        const roundDisplay = document.getElementById('round-display');
+        const mainBtn = document.getElementById('mainBtn');
+
+        // Audio Context for beeps
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function beep(freq = 440, duration = 0.2) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = "sine";
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function updateUI() {
+            timeDisplay.innerText = timeLeft < 10 ? `0${timeLeft}` : timeLeft;
+            roundDisplay.innerText = `ROUND ${currentRound} / ${rounds}`;
+            
+            if (isWork) {
+                statusDisplay.innerText = "WORK";
+                timeDisplay.className = "work-mode";
+            } else {
+                statusDisplay.innerText = "REST";
+                timeDisplay.className = "rest-mode";
+            }
+        }
+
+        function toggleTimer() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            if (isActive) {
+                clearInterval(timer);
+                mainBtn.innerText = "RESUME";
+                mainBtn.style.backgroundColor = "#22c55e";
+            } else {
+                timer = setInterval(countDown, 1000);
+                mainBtn.innerText = "PAUSE";
+                mainBtn.style.backgroundColor = "#eab308";
+            }
+            isActive = !isActive;
+        }
+
+        function countDown() {
+            if (timeLeft > 0) {
+                timeLeft--;
+                if (timeLeft <= 3 && timeLeft > 0) beep(440, 0.1); // Short warning beeps
+                if (timeLeft === 0) beep(880, 0.5); // End of period beep
+            } else {
+                if (isWork) {
+                    isWork = false;
+                    timeLeft = restTime;
+                } else {
+                    isWork = true;
+                    timeLeft = workTime;
+                    currentRound++;
+                }
+
+                if (currentRound > rounds) {
+                    clearInterval(timer);
+                    alert("WORKOUT COMPLETE!");
+                    resetTimer();
+                    return;
+                }
+            }
+            updateUI();
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            isActive = false;
+            currentRound = 1;
+            timeLeft = workTime;
+            isWork = true;
+            mainBtn.innerText = "START WORKOUT";
+            mainBtn.style.backgroundColor = "#22c55e";
+            updateUI();
+        }
+
+        // Initialize
+        updateUI();
+    </script>
 </body>
 </html>
