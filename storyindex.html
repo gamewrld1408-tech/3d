@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoryCraft | AI Workshop</title>
+    <style>
+        :root { --accent: #8b5cf6; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
+        body { font-family: 'Georgia', serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.6; }
+        
+        .container { max-width: 600px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 30px; }
+        
+        .setup-card { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; }
+        input, select, textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; margin-top: 8px; box-sizing: border-box; }
+        
+        .genre-chips { display: flex; gap: 10px; margin-top: 15px; overflow-x: auto; padding-bottom: 10px; }
+        .chip { background: #334155; padding: 8px 18px; border-radius: 20px; font-size: 14px; cursor: pointer; white-space: nowrap; border: 1px solid transparent; }
+        .chip.active { background: var(--accent); border-color: white; }
+
+        .btn-generate { width: 100%; padding: 18px; border-radius: 15px; border: none; background: var(--accent); color: white; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); }
+        
+        .story-display { background: white; color: #1e293b; padding: 30px; border-radius: 5px; margin-top: 30px; min-height: 200px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
+        .story-display::before { content: "CHAPTER ONE"; display: block; font-size: 12px; letter-spacing: 3px; color: #64748b; margin-bottom: 20px; text-align: center; }
+
+        .loader { display: none; text-align: center; margin-top: 20px; font-style: italic; color: var(--accent); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1 style="margin:0">StoryCraft AI</h1>
+            <p style="opacity:0.6">Co-authored by Gemini</p>
+        </div>
+
+        <div class="setup-card">
+            <label>Hero's Name</label>
+            <input type="text" id="heroName" placeholder="e.g. Jax, Elara, Commander Stone">
+
+            <label style="display:block; margin-top:20px;">Genre</label>
+            <div class="genre-chips" id="genreContainer">
+                <div class="chip active" onclick="selectGenre(this)">Cyberpunk</div>
+                <div class="chip" onclick="selectGenre(this)">Dark Fantasy</div>
+                <div class="chip" onclick="selectGenre(this)">Space Horror</div>
+                <div class="chip" onclick="selectGenre(this)">Mystery</div>
+            </div>
+
+            <label style="display:block; margin-top:20px;">Opening Prompt (Optional)</label>
+            <textarea id="prompt" rows="2" placeholder="e.g. He found a mysterious glowing key..."></textarea>
+            
+            <button class="btn-generate" onclick="generateStory()">WRITE STORY</button>
+        </div>
+
+        <div id="loader" class="loader">Consulting the Muses...</div>
+
+        <div id="storyDisplay" class="story-display">
+            <div id="storyText"></div>
+            <button class="btn-generate" style="background:#1e293b; margin-top:30px;" onclick="window.print()">PRINT MANUSCRIPT</button>
+        </div>
+    </div>
+
+<script>
+    function selectGenre(el) {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    function generateStory() {
+        const name = document.getElementById('heroName').value || "The Traveler";
+        const genre = document.querySelector('.chip.active').innerText;
+        const extra = document.getElementById('prompt').value;
+        const loader = document.getElementById('loader');
+        const display = document.getElementById('storyDisplay');
+        const text = document.getElementById('storyText');
+
+        loader.style.display = 'block';
+        display.style.display = 'none';
+
+        // In a real app, this would call my API. 
+        // For your prototype, here is a "Local Narrative Engine":
+        setTimeout(() => {
+            loader.style.display = 'none';
+            display.style.display = 'block';
+
+            let story = "";
+            if(genre === "Cyberpunk") {
+                story = `${name} adjusted their neural-link as the neon rain of Neo-Tokyo sizzled against their synthetic skin. The mission was simple: extract the data or vanish into the smog. ${extra}`;
+            } else if(genre === "Dark Fantasy") {
+                story = `The iron gates groaned as ${name} entered the Forgotten Citadel. The air tasted of ancient dust and blood. A shadow moved in the balcony above—the King was waiting. ${extra}`;
+            } else if(genre === "Space Horror") {
+                story = `The oxygen alarm was the only sound on the Deck. ${name} gripped the cold railing. Something was clawing at the airlock, and it didn't sound human. ${extra}`;
+            } else {
+                story = `The city was quiet, but ${name} knew better. In this town, silence was just a precursor to a scream. The clues were all there, hidden in plain sight. ${extra}`;
+            }
+
+            text.innerText = story + " To be continued...";
+        }, 1500);
+    }
+</script>
+</body>
+</html>
