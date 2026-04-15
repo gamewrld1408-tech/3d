@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HIIT Timer | Pulse & Reset</title>
+    <title>HIIT Pro | Wake Lock & Ring</title>
     <style>
         :root { --work: #ef4444; --rest: #3b82f6; --bg: #0f172a; --success: #22c55e; }
         body {
@@ -18,57 +18,63 @@
             margin: 0;
             overflow: hidden;
         }
-        .timer-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 40px;
-            border-radius: 40px;
-            text-align: center;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 85%;
-            max-width: 400px;
-        }
-        #time-display { font-size: 8rem; font-weight: 900; margin: 10px 0; font-variant-numeric: tabular-nums; }
-        #status { font-size: 1.5rem; font-weight: 800; letter-spacing: 4px; }
-        .work-text { color: var(--work); text-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
-        .rest-text { color: var(--rest); text-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+        .timer-container { position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; }
         
-        .controls { display: flex; gap: 10px; margin-top: 20px; }
+        /* Progress Ring */
+        svg { position: absolute; top: 0; left: 0; transform: rotate(-90deg); }
+        circle {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s;
+        }
+        .bg-ring { stroke: rgba(255,255,255,0.1); }
+        .fg-ring { stroke: var(--work); }
+
+        .timer-content { text-align: center; z-index: 10; }
+        #time-display { font-size: 6rem; font-weight: 900; line-height: 1; margin: 0; font-variant-numeric: tabular-nums; }
+        #status { font-size: 1.2rem; font-weight: 800; letter-spacing: 4px; margin-top: 10px; }
+        
+        .controls { display: flex; gap: 10px; margin-top: 50px; width: 300px; }
         .btn {
-            flex: 1;
-            padding: 18px;
-            font-size: 1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: 0.2s;
+            flex: 1; padding: 18px; font-size: 1rem; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; transition: 0.2s;
         }
         .start-btn { background: var(--success); color: white; }
-        .reset-btn { background: #64748b; color: white; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .music-indicator { font-size: 11px; margin-top: 20px; opacity: 0.6; display: flex; align-items: center; justify-content: center; gap: 5px; height: 20px; }
+        .reset-btn { background: #475569; color: white; }
+        
+        .music-indicator { margin-top: 20px; font-size: 12px; opacity: 0.6; display: flex; align-items: center; gap: 8px; }
         .bar { width: 3px; height: 10px; background: white; animation: bounce 0.5s infinite ease-in-out; display: none; }
         @keyframes bounce { 0%, 100% { height: 5px; } 50% { height: 15px; } }
     </style>
 </head>
 <body>
 
-    <div class="timer-card">
-        <div id="round-info" style="opacity: 0.5; font-size: 0.9rem;">ROUND 1 / 50</div>
-        <div id="status">READY</div>
-        <div id="time-display" class="work-text">45</div>
-        
-        <div class="controls">
-            <button id="startBtn" class="btn start-btn" onclick="startWorkout()">START</button>
-            <button id="resetBtn" class="btn reset-btn" onclick="resetWorkout()">RESET</button>
+    <div id="round-info" style="margin-bottom: 20px; opacity: 0.5;">ROUND 1 / 50</div>
+
+    <div class="timer-container">
+        <svg width="300" height="300">
+            <circle class="bg-ring" cx="150" cy="150" r="135"></circle>
+            <circle id="progress-bar" class="fg-ring" cx="150" cy="150" r="135"></circle>
+        </svg>
+
+        <div class="timer-content">
+            <div id="time-display">45</div>
+            <div id="status">READY</div>
         </div>
-        
-        <div class="music-indicator" id="musicStatus">
-            <div class="bar"></div><div class="bar" style="animation-delay: 0.1s"></div><div class="bar" style="animation-delay: 0.2s"></div>
-            <span id="music-text">MUSIC READY</span>
+    </div>
+
+    <div class="controls">
+        <button id="startBtn" class="btn start-btn" onclick="startWorkout()">START</button>
+        <button id="resetBtn" class="btn reset-btn" onclick="resetWorkout()">RESET</button>
+    </div>
+
+    <div class="music-indicator">
+        <div id="bars" style="display: none; gap: 4px;">
+            <div class="bar" style="display:block"></div>
+            <div class="bar" style="display:block; animation-delay: 0.1s"></div>
+            <div class="bar" style="display:block; animation-delay: 0.2s"></div>
         </div>
+        <span id="music-text">WAKE LOCK INACTIVE</span>
     </div>
 
     <audio id="workoutMusic" loop>
@@ -79,38 +85,57 @@
         let workTime = 45;
         let restTime = 15;
         let totalRounds = 50;
-        
         let currentRound = 1;
         let timeLeft = workTime;
         let isWork = true;
         let timer = null;
+        let wakeLock = null;
+
         const music = document.getElementById('workoutMusic');
-        const startBtn = document.getElementById('startBtn');
-        const bars = document.querySelectorAll('.bar');
+        const circle = document.getElementById('progress-bar');
+        const radius = circle.r.baseVal.value;
+        const circumference = 2 * Math.PI * radius;
+
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = 0;
+
+        async function requestWakeLock() {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+                document.getElementById('music-text').innerText = "WAKE LOCK ACTIVE";
+            } catch (err) {
+                console.log(`${err.name}, ${err.message}`);
+            }
+        }
+
+        function setProgress(percent) {
+            const offset = circumference - (percent / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
 
         function startWorkout() {
-            if (timer) return; 
-            startBtn.disabled = true;
+            if (timer) return;
+            requestWakeLock();
+            document.getElementById('startBtn').disabled = true;
             music.play();
             timer = setInterval(runTimer, 1000);
-            updateDisplay();
+            document.getElementById('bars').style.display = 'flex';
         }
 
         function resetWorkout() {
             clearInterval(timer);
             timer = null;
+            if (wakeLock) { wakeLock.release(); wakeLock = null; }
             currentRound = 1;
             timeLeft = workTime;
             isWork = true;
-            startBtn.disabled = false;
-            
+            document.getElementById('startBtn').disabled = false;
             music.pause();
             music.currentTime = 0;
-            
             updateDisplay();
             document.getElementById('status').innerText = "READY";
-            document.getElementById('music-text').innerText = "MUSIC READY";
-            bars.forEach(b => b.style.display = 'none');
+            document.getElementById('music-text').innerText = "WAKE LOCK INACTIVE";
+            document.getElementById('bars').style.display = 'none';
         }
 
         function runTimer() {
@@ -121,43 +146,31 @@
                     isWork = false;
                     timeLeft = restTime;
                     music.pause();
-                    document.getElementById('music-text').innerText = "PAUSED (REST)";
-                    bars.forEach(b => b.style.display = 'none');
+                    document.getElementById('bars').style.opacity = '0.2';
                 } else {
                     isWork = true;
                     timeLeft = workTime;
                     currentRound++;
                     music.play();
-                    document.getElementById('music-text').innerText = "BEATS ACTIVE";
-                    bars.forEach(b => b.style.display = 'block');
+                    document.getElementById('bars').style.opacity = '1';
                 }
-
-                if (currentRound > totalRounds) {
-                    resetWorkout();
-                    alert("Workout Finished! Great job.");
-                }
+                if (currentRound > totalRounds) { resetWorkout(); alert("FINISHED!"); }
             }
             updateDisplay();
         }
 
         function updateDisplay() {
-            const display = document.getElementById('time-display');
-            const status = document.getElementById('status');
-            display.innerText = timeLeft;
+            const total = isWork ? workTime : restTime;
+            const percentage = (timeLeft / total) * 100;
+            setProgress(percentage);
+
+            document.getElementById('time-display').innerText = timeLeft;
             document.getElementById('round-info').innerText = `ROUND ${currentRound} / ${totalRounds}`;
-            
-            if (isWork) {
-                status.innerText = "WORK";
-                display.className = "work-text";
-                if(timer) {
-                    bars.forEach(b => b.style.display = 'block');
-                    document.getElementById('music-text').innerText = "BEATS ACTIVE";
-                }
-            } else {
-                status.innerText = "REST";
-                display.className = "rest-text";
-            }
+            document.getElementById('status').innerText = isWork ? "WORK" : "REST";
+            circle.style.stroke = isWork ? 'var(--work)' : 'var(--rest)';
         }
+
+        updateDisplay();
     </script>
 </body>
 </html>
