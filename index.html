@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HIIT Timer | 50 Rounds</title>
+    <title>HIIT Timer | Audio Pulse</title>
     <style>
-        :root {
-            --work-color: #ef4444; /* Red */
-            --rest-color: #3b82f6; /* Blue */
-            --bg: #0f172a;
-        }
+        :root { --work: #ef4444; --rest: #3b82f6; --bg: #0f172a; }
         body {
-            font-family: 'Inter', system-ui, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg);
             color: white;
             display: flex;
@@ -20,166 +16,119 @@
             justify-content: center;
             height: 100vh;
             margin: 0;
-            text-align: center;
+            overflow: hidden;
         }
         .timer-card {
             background: rgba(255, 255, 255, 0.05);
-            padding: 40px;
-            border-radius: 30px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            width: 90%;
+            padding: 50px;
+            border-radius: 40px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 85%;
             max-width: 400px;
         }
-        #status {
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            font-weight: 800;
-        }
-        #time-display {
-            font-size: 8rem;
-            font-weight: 900;
-            line-height: 1;
-            margin: 20px 0;
-            font-variant-numeric: tabular-nums;
-        }
-        #round-display {
+        #time-display { font-size: 9rem; font-weight: 900; margin: 10px 0; font-variant-numeric: tabular-nums; transition: 0.3s; }
+        #status { font-size: 1.5rem; font-weight: 800; letter-spacing: 4px; margin-bottom: 5px; }
+        .work-text { color: var(--work); text-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+        .rest-text { color: var(--rest); text-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+        
+        .btn {
+            padding: 20px 40px;
             font-size: 1.2rem;
-            opacity: 0.7;
-        }
-        .controls {
-            margin-top: 40px;
-            display: flex;
-            gap: 15px;
-        }
-        button {
-            padding: 15px 30px;
-            font-size: 1rem;
             font-weight: bold;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            transition: transform 0.1s;
+            width: 100%;
+            margin-top: 20px;
         }
-        button:active { transform: scale(0.95); }
-        .start-btn { background-color: #22c55e; color: white; }
-        .reset-btn { background-color: #64748b; color: white; }
-        
-        /* Dynamic Classes */
-        .work-mode { color: var(--work-color); }
-        .rest-mode { color: var(--rest-color); }
+        .start-btn { background: #22c55e; color: white; }
+        .music-indicator { font-size: 12px; margin-top: 15px; opacity: 0.6; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .bar { width: 3px; height: 10px; background: white; animation: bounce 0.5s infinite ease-in-out; }
+        @keyframes bounce { 0%, 100% { height: 5px; } 50% { height: 15px; } }
     </style>
 </head>
 <body>
 
     <div class="timer-card">
-        <div id="round-display">ROUND 1 / 50</div>
-        <div id="status">READY?</div>
-        <div id="time-display">00</div>
+        <div id="round-info" style="opacity: 0.5; font-weight: 600;">ROUND 1 / 50</div>
+        <div id="status">READY</div>
+        <div id="time-display">45</div>
         
-        <div class="controls">
-            <button id="mainBtn" class="start-btn" onclick="toggleTimer()">START WORKOUT</button>
-            <button class="reset-btn" onclick="resetTimer()">RESET</button>
+        <button id="mainBtn" class="btn start-btn" onclick="startWorkout()">START WORKOUT</button>
+        
+        <div class="music-indicator" id="musicStatus" style="visibility: hidden;">
+            <div class="bar"></div><div class="bar" style="animation-delay: 0.1s"></div><div class="bar" style="animation-delay: 0.2s"></div>
+            ELECTRONIC BEATS ACTIVE
         </div>
     </div>
 
+    <audio id="workoutMusic" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
-        let rounds = 50;
         let workTime = 45;
         let restTime = 15;
+        let totalRounds = 50;
         
         let currentRound = 1;
         let timeLeft = workTime;
         let isWork = true;
         let timer = null;
-        let isActive = false;
+        const music = document.getElementById('workoutMusic');
 
-        const timeDisplay = document.getElementById('time-display');
-        const statusDisplay = document.getElementById('status');
-        const roundDisplay = document.getElementById('round-display');
-        const mainBtn = document.getElementById('mainBtn');
-
-        // Audio Context for beeps
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function beep(freq = 440, duration = 0.2) {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = "sine";
-            osc.frequency.value = freq;
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-            osc.stop(audioCtx.currentTime + duration);
+        function startWorkout() {
+            if (timer) return; // Prevent double start
+            document.getElementById('mainBtn').style.display = 'none';
+            document.getElementById('musicStatus').style.visibility = 'visible';
+            music.play();
+            timer = setInterval(runTimer, 1000);
+            updateDisplay();
         }
 
-        function updateUI() {
-            timeDisplay.innerText = timeLeft < 10 ? `0${timeLeft}` : timeLeft;
-            roundDisplay.innerText = `ROUND ${currentRound} / ${rounds}`;
-            
-            if (isWork) {
-                statusDisplay.innerText = "WORK";
-                timeDisplay.className = "work-mode";
-            } else {
-                statusDisplay.innerText = "REST";
-                timeDisplay.className = "rest-mode";
-            }
-        }
-
-        function toggleTimer() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
-            if (isActive) {
-                clearInterval(timer);
-                mainBtn.innerText = "RESUME";
-                mainBtn.style.backgroundColor = "#22c55e";
-            } else {
-                timer = setInterval(countDown, 1000);
-                mainBtn.innerText = "PAUSE";
-                mainBtn.style.backgroundColor = "#eab308";
-            }
-            isActive = !isActive;
-        }
-
-        function countDown() {
+        function runTimer() {
             if (timeLeft > 0) {
                 timeLeft--;
-                if (timeLeft <= 3 && timeLeft > 0) beep(440, 0.1); // Short warning beeps
-                if (timeLeft === 0) beep(880, 0.5); // End of period beep
             } else {
+                // Switch modes
                 if (isWork) {
                     isWork = false;
                     timeLeft = restTime;
+                    music.pause(); // Stop music during break
+                    document.getElementById('musicStatus').style.opacity = '0.2';
                 } else {
                     isWork = true;
                     timeLeft = workTime;
                     currentRound++;
+                    music.play(); // Start music for work
+                    document.getElementById('musicStatus').style.opacity = '1';
                 }
 
-                if (currentRound > rounds) {
+                if (currentRound > totalRounds) {
                     clearInterval(timer);
-                    alert("WORKOUT COMPLETE!");
-                    resetTimer();
-                    return;
+                    alert("Workout Finished!");
+                    location.reload();
                 }
             }
-            updateUI();
+            updateDisplay();
         }
 
-        function resetTimer() {
-            clearInterval(timer);
-            isActive = false;
-            currentRound = 1;
-            timeLeft = workTime;
-            isWork = true;
-            mainBtn.innerText = "START WORKOUT";
-            mainBtn.style.backgroundColor = "#22c55e";
-            updateUI();
+        function updateDisplay() {
+            const display = document.getElementById('time-display');
+            const status = document.getElementById('status');
+            display.innerText = timeLeft;
+            document.getElementById('round-info').innerText = `ROUND ${currentRound} / ${totalRounds}`;
+            
+            if (isWork) {
+                status.innerText = "WORK";
+                display.className = "work-text";
+            } else {
+                status.innerText = "REST";
+                display.className = "rest-text";
+            }
         }
-
-        // Initialize
-        updateUI();
     </script>
 </body>
 </html>
